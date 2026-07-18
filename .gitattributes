@@ -1,0 +1,16 @@
+# Normalise line endings to LF in the working tree on every platform.
+#
+# Without this, Git converts to CRLF on Windows checkouts while CI runs on
+# Linux with LF. Prettier is configured for LF, so `npm run format:check`
+# would pass in CI and fail on a fresh Windows clone — a confusing failure
+# that has nothing to do with the code.
+* text=auto eol=lf
+
+# Binary files must never be converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
