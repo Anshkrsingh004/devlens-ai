@@ -1,4 +1,4 @@
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
 /**
  * Prisma CLI configuration.
@@ -35,12 +35,25 @@ try {
   // No local env file: fall back to the ambient environment.
 }
 
+/**
+ * The datasource is declared only when DIRECT_URL is actually available.
+ *
+ * Prisma's `env()` helper resolves eagerly at config load, so referencing a
+ * missing variable throws for EVERY command — including `prisma generate`,
+ * which needs no database connection at all. That breaks `npm install` on CI
+ * and on a fresh clone, where credentials are absent by design.
+ *
+ * Declaring it conditionally keeps `generate` working without credentials
+ * while `migrate` still gets its connection when one is configured. A command
+ * that genuinely needs the database and cannot find it fails on its own with
+ * a clear message.
+ */
+const directUrl = process.env.DIRECT_URL;
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
-  datasource: {
-    url: env("DIRECT_URL"),
-  },
+  ...(directUrl ? { datasource: { url: directUrl } } : {}),
 });
