@@ -29,11 +29,21 @@ export async function AppChrome({ children }: { children: ReactNode }) {
       homeHref={session ? "/dashboard" : "/"}
       accountSlot={
         session ? (
-          <UserMenu
-            name={session.user.name}
-            email={session.user.email}
-            image={session.user.image ?? null}
-          />
+          <>
+            {/*
+              The primary action, present on every authenticated page. Without
+              it /review/new is only reachable by typing the URL — the feature
+              exists but nobody can find it.
+            */}
+            <Button asChild size="sm" variant="ghost">
+              <Link href="/review/new">New review</Link>
+            </Button>
+            <UserMenu
+              name={session.user.name}
+              email={session.user.email}
+              image={session.user.image ?? null}
+            />
+          </>
         ) : (
           <Button asChild size="sm">
             <Link href="/sign-in">Sign in</Link>
