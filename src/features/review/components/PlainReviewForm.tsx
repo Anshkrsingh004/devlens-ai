@@ -1,9 +1,12 @@
 "use client";
 
+import { Download } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { MAX_SOURCE_CHARS } from "@/config/limits";
+
+import { CopyButton } from "./CopyButton";
 
 import {
   LANGUAGES,
@@ -31,6 +34,31 @@ export function PlainReviewForm() {
   const [elapsed, setElapsed] = useState<number | null>(null);
 
   const overLimit = sourceCode.length > MAX_SOURCE_CHARS;
+
+  // Formatted once and reused by the display, the copy button and the
+  // download, so all three are guaranteed to contain identical text.
+  const formattedResult = result ? JSON.stringify(result, null, 2) : "";
+
+  /**
+   * Save the report as a file.
+   *
+   * Offered alongside copy because the clipboard holds one item — anything
+   * copied afterwards destroys the review. A file survives.
+   *
+   * Proper Markdown and PDF export arrive in M6; this is raw JSON.
+   */
+  function handleDownload() {
+    const blob = new Blob([formattedResult], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `devlens-review-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.click();
+
+    // Without revoking, the blob is retained for the lifetime of the document.
+    URL.revokeObjectURL(url);
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -124,12 +152,32 @@ export function PlainReviewForm() {
       ) : null}
 
       {result ? (
-        <div className="space-y-2">
-          <p className="text-muted-foreground text-sm">
-            Completed in {elapsed ? (elapsed / 1000).toFixed(1) : "?"}s
-          </p>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-muted-foreground text-sm">
+              Completed in {elapsed ? (elapsed / 1000).toFixed(1) : "?"}s
+            </p>
+
+            <div className="flex items-center gap-2">
+              <CopyButton
+                value={formattedResult}
+                label="Copy JSON"
+                subject="Report copied"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+              >
+                <Download aria-hidden="true" />
+                Download
+              </Button>
+            </div>
+          </div>
+
           <pre className="bg-muted max-h-[600px] overflow-auto rounded-md p-4 text-xs">
-            {JSON.stringify(result, null, 2)}
+            {formattedResult}
           </pre>
         </div>
       ) : null}
