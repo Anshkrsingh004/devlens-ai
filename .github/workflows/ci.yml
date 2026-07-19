@@ -26,6 +26,7 @@ env:
   BETTER_AUTH_URL: http://localhost:3000
   GOOGLE_CLIENT_ID: ci-client-id
   GOOGLE_CLIENT_SECRET: ci-client-secret
+  GROQ_API_KEY: gsk_ci_key_not_real
 
 jobs:
   verify:

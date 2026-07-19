@@ -66,15 +66,20 @@ const layerBoundaries = [
     files: ["src/server/**/*.{ts,tsx}"],
     forbidden: [
       {
+        // Listed explicitly rather than as "@/features/* minus schemas":
+        // ESLint's `*` matches across path segments, so a negation would be
+        // silently ineffective. Naming the forbidden subfolders is both
+        // reliable and clearer about the intent.
+        //
+        // `@/features/*/schemas/*` is deliberately absent — those files are
+        // pure Zod with no server dependencies, and sharing them is what
+        // guarantees client and server validate against identical rules.
         group: [
           "@/components/*",
           "@/app/*",
-          "@/features/*",
-          // The one documented exception: schemas are pure Zod with no server
-          // dependencies, and sharing them is what guarantees client and
-          // server validate against identical rules.
-          "!@/features/*/schemas",
-          "!@/features/*/schemas/*",
+          "@/features/*/components/*",
+          "@/features/*/hooks/*",
+          "@/features/*/lib/*",
         ],
       },
     ],

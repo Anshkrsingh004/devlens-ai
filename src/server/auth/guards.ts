@@ -3,6 +3,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { errors } from "@/lib/errors";
 import { auth, type Session } from "@/server/auth/auth";
 
 /**
@@ -44,27 +45,21 @@ export async function requireSession(): Promise<Session> {
   return session;
 }
 
-/** Thrown when an API request has no valid session. Mapped to 401 in M3. */
-export class UnauthorizedError extends Error {
-  readonly code = "UNAUTHORIZED";
-
-  constructor() {
-    super("Authentication required");
-    this.name = "UnauthorizedError";
-  }
-}
-
 /**
  * Require an authenticated session inside a route handler.
  *
  * Throws rather than redirecting: an API client needs a 401 it can act on,
  * not an HTML redirect it will not understand.
+ *
+ * Throws the shared `AppError` taxonomy rather than a bespoke error class.
+ * A separate class would not be recognised by `withApiHandler`, which maps
+ * AppError to status codes — the result was a 500 where a 401 belonged.
  */
 export async function requireSessionOrThrow(): Promise<Session> {
   const session = await getOptionalSession();
 
   if (!session) {
-    throw new UnauthorizedError();
+    throw errors.unauthorized();
   }
 
   return session;
