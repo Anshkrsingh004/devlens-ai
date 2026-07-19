@@ -118,11 +118,25 @@ export async function requestReview({
     // the user as the same opaque 503. The body never reaches the client and
     // never contains the API key (that lives in a request header).
     const detail = await response.text().catch(() => "<unreadable>");
+
     console.error("[groq] request failed", {
       status: response.status,
       model,
       detail: detail.slice(0, 500),
     });
+
+    // Groq validates strict-mode output on its side and returns 400
+    // `json_validate_failed` when the model breaks the schema. That is the
+    // model getting it wrong, not the service being down — and a second
+    // sampling pass usually succeeds.
+    //
+    // Classifying it as AI_UNAVAILABLE meant the repair retry in
+    // review.service never ran, because that path only triggers when OUR Zod
+    // check fails — which cannot happen if Groq rejected the response first.
+    // A recoverable mistake was being reported as an outage.
+    if (response.status === 400 && detail.includes("json_validate_failed")) {
+      throw errors.aiInvalidResponse();
+    }
 
     throw errors.aiUnavailable();
   }
