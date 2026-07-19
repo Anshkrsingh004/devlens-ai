@@ -43,6 +43,26 @@ const serverSchema = z.object({
    * cannot provide.
    */
   DIRECT_URL: z.url(),
+
+  /**
+   * Signing key for session cookies. Better Auth requires at least 32
+   * characters; a shorter key weakens every session in the system, so it is
+   * enforced here rather than trusted.
+   */
+  BETTER_AUTH_SECRET: z
+    .string()
+    .min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
+
+  /**
+   * The origin this app is served from. Must match EXACTLY — including
+   * scheme and absence of a trailing slash — or OAuth callbacks fail
+   * silently, which is a genuinely painful bug to trace.
+   */
+  BETTER_AUTH_URL: z.url(),
+
+  /** Google OAuth credentials (Google Cloud Console → Clients). */
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
 });
 
 const clientSchema = z.object({

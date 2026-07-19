@@ -42,6 +42,12 @@ export default defineConfig({
       // mutating someone's actual data.
       DATABASE_URL: "postgresql://user:pass@localhost:6543/test?pgbouncer=true",
       DIRECT_URL: "postgresql://user:pass@localhost:5432/test",
+      // Fake but well-formed. Nothing in the unit suite authenticates; these
+      // only satisfy boot-time validation.
+      BETTER_AUTH_SECRET: "test-secret-at-least-32-characters-long",
+      BETTER_AUTH_URL: "http://localhost:3000",
+      GOOGLE_CLIENT_ID: "test-client-id",
+      GOOGLE_CLIENT_SECRET: "test-client-secret",
     },
   },
 });
