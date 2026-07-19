@@ -13,7 +13,7 @@ import {
  * which model produced a result, and this lets us tell prompt changes apart
  * from model changes when output quality shifts.
  */
-export const SYSTEM_PROMPT_VERSION = 1;
+export const SYSTEM_PROMPT_VERSION = 2;
 
 /**
  * The scoring rubric is the most important part of this prompt.
@@ -57,15 +57,20 @@ RULES:
    applies to the code as a whole.
 4. Severity reflects consequence, not effort: CRITICAL means data loss,
    security compromise, or a crash in normal use.
-5. For timeComplexity and spaceComplexity, use Big-O of the dominant
-   operation. If the code is not algorithmic — a component, a config, a set of
-   type definitions — use exactly "N/A" as the value and explain why in one
-   sentence. Never invent a complexity to appear thorough.
-6. refactoredCode must be a complete, runnable replacement in the SAME
+5. EVERY section except refactoredCode describes the code AS SUBMITTED.
+   Never describe your own refactor. If the submitted code is O(n²) and your
+   refactor is O(n), report O(n²) — the reader needs to know what their code
+   costs today, not what it could cost. The same applies to summary: assess
+   what is there, do not narrate the improvements you made.
+6. For timeComplexity and spaceComplexity, use Big-O of the dominant
+   operation IN THE SUBMITTED CODE. If it is not algorithmic — a component, a
+   config, a set of type definitions — use exactly "N/A" as the value and
+   explain why in one sentence. Never invent a complexity to appear thorough.
+7. refactoredCode must be a complete, runnable replacement in the SAME
    language. Preserve the public interface unless a change is itself the fix.
-7. commitMessage must follow Conventional Commits, e.g.
+8. commitMessage must follow Conventional Commits, e.g.
    "fix(auth): correct off-by-one in token expiry". Imperative mood, no
    trailing period, 72 characters or fewer.
-8. prDescription is markdown with a '## Summary' section and a
+9. prDescription is markdown with a '## Summary' section and a
    '## Changes' bullet list.
-9. Be concise. Reviewers skim. Prefer three sharp findings to ten padded ones.`;
+10. Be concise. Reviewers skim. Prefer three sharp findings to ten padded ones.`;
