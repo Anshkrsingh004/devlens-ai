@@ -21,7 +21,33 @@ import { getServerEnv } from "@/lib/env";
 
 const env = getServerEnv();
 
+/**
+ * Origins Better Auth will accept requests from.
+ *
+ * Vercel serves the same deployment from several hostnames — the production
+ * alias, a branch alias, and a unique per-deployment URL. `BETTER_AUTH_URL`
+ * can only name one of them, so visiting any other host fails with
+ * "invalid origin", which reads as a broken login rather than a
+ * configuration mismatch.
+ *
+ * Vercel supplies these values without a scheme, so https:// is prefixed.
+ * They are environment-injected and cannot be spoofed by a client, so
+ * trusting them does not widen the attack surface.
+ */
+const trustedOrigins = [
+  env.BETTER_AUTH_URL,
+  env.VERCEL_URL,
+  env.VERCEL_BRANCH_URL,
+  env.VERCEL_PROJECT_PRODUCTION_URL,
+]
+  .filter((value): value is string => Boolean(value))
+  .map((value) => (value.startsWith("http") ? value : `https://${value}`))
+  // De-duplicate: BETTER_AUTH_URL usually equals the production alias.
+  .filter((value, index, all) => all.indexOf(value) === index);
+
 export const auth = betterAuth({
+  trustedOrigins,
+
   database: prismaAdapter(db, {
     provider: "postgresql",
   }),

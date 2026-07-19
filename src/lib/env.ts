@@ -63,6 +63,22 @@ const serverSchema = z.object({
   /** Google OAuth credentials (Google Cloud Console → Clients). */
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
+
+  /**
+   * Injected automatically by Vercel — never set by hand.
+   *
+   * Vercel serves each project from several hostnames: the production alias,
+   * a branch alias, and a unique URL per deployment. Better Auth rejects any
+   * request whose origin is not trusted, so these are added to
+   * `trustedOrigins` to stop sign-in failing with "invalid origin" on every
+   * host except the one named in BETTER_AUTH_URL.
+   *
+   * Absent locally, hence optional. Note Vercel supplies these WITHOUT a
+   * scheme (`my-app.vercel.app`), so they are not validated as URLs.
+   */
+  VERCEL_URL: z.string().optional(),
+  VERCEL_BRANCH_URL: z.string().optional(),
+  VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
 });
 
 const clientSchema = z.object({
