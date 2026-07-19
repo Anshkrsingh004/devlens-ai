@@ -13,9 +13,14 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Validated by src/lib/env.ts at build time. CI only needs a syntactically
-  # valid URL — nothing here is deployed.
+  # All three are validated by src/lib/env.ts at boot. CI only needs
+  # syntactically valid values — nothing here is deployed, and no job in this
+  # workflow connects to a database.
   NEXT_PUBLIC_APP_URL: http://localhost:3000
+  # Deliberately unreachable placeholders. A real connection string here would
+  # let a CI run mutate production data.
+  DATABASE_URL: postgresql://user:pass@localhost:6543/devlens?pgbouncer=true
+  DIRECT_URL: postgresql://user:pass@localhost:5432/devlens
 
 jobs:
   verify:
