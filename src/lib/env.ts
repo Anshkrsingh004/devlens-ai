@@ -29,6 +29,20 @@ const serverSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+
+  /**
+   * Pooled connection (port 6543, `?pgbouncer=true`). Used by Prisma Client
+   * at runtime — serverless functions open many short-lived connections and
+   * would exhaust a direct pool.
+   */
+  DATABASE_URL: z.url(),
+
+  /**
+   * Direct connection (port 5432). Used only by the Prisma CLI: migrations
+   * need a session-mode connection, which pgbouncer's transaction mode
+   * cannot provide.
+   */
+  DIRECT_URL: z.url(),
 });
 
 const clientSchema = z.object({

@@ -36,6 +36,12 @@ export default defineConfig({
     // transitively needs this present before the first import runs.
     env: {
       NEXT_PUBLIC_APP_URL: "http://localhost:3000",
+      // Syntactically valid but deliberately unreachable. Unit tests never
+      // touch a database; these exist only to satisfy env validation at
+      // import time. A real connection string here would risk a test run
+      // mutating someone's actual data.
+      DATABASE_URL: "postgresql://user:pass@localhost:6543/test?pgbouncer=true",
+      DIRECT_URL: "postgresql://user:pass@localhost:5432/test",
     },
   },
 });

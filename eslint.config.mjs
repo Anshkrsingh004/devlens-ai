@@ -94,6 +94,8 @@ const eslintConfig = [
       "playwright-report/**",
       "test-results/**",
       "next-env.d.ts",
+      // Prisma's generated client is vendor output, regenerated on install.
+      "src/generated/**",
     ],
   },
 
