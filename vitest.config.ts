@@ -16,6 +16,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // See tests/stubs/server-only.ts for why this is aliased.
+      "server-only": fileURLToPath(
+        new URL("./tests/stubs/server-only.ts", import.meta.url),
+      ),
     },
   },
   // Next.js requires `jsx: "preserve"` in tsconfig, which leaves JSX
@@ -48,6 +52,7 @@ export default defineConfig({
       BETTER_AUTH_URL: "http://localhost:3000",
       GOOGLE_CLIENT_ID: "test-client-id",
       GOOGLE_CLIENT_SECRET: "test-client-secret",
+      GROQ_API_KEY: "gsk_test_key_not_real",
     },
   },
 });

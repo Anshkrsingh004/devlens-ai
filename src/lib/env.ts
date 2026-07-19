@@ -65,6 +65,12 @@ const serverSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().min(1),
 
   /**
+   * Groq API key (console.groq.com/keys). Free tier for gpt-oss-120b:
+   * 30 RPM · 1,000 RPD · 8,000 TPM · 200,000 TPD.
+   */
+  GROQ_API_KEY: z.string().min(1).startsWith("gsk_"),
+
+  /**
    * Injected automatically by Vercel — never set by hand.
    *
    * Vercel serves each project from several hostnames: the production alias,
