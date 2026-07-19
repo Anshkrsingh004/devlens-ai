@@ -136,13 +136,26 @@ async function callWithOneRetry(
   try {
     return await requestReview({ systemPrompt, userPrompt });
   } catch (error) {
-    if (!isAppError(error) || error.code !== "AI_RATE_LIMITED") throw error;
+    if (!isAppError(error)) throw error;
 
-    const retryAfter = Number(error.details?.retryAfterSeconds ?? 1);
-    const waitMs = Math.min(retryAfter * 1000, MAX_RETRY_WAIT_MS);
+    // A rate limit is worth waiting out: the provider told us how long.
+    if (error.code === "AI_RATE_LIMITED") {
+      const retryAfter = Number(error.details?.retryAfterSeconds ?? 1);
+      await sleep(Math.min(retryAfter * 1000, MAX_RETRY_WAIT_MS));
+      return requestReview({ systemPrompt, userPrompt });
+    }
 
-    await sleep(waitMs);
-    return requestReview({ systemPrompt, userPrompt });
+    // Groq rejected the model's output against the schema. Retry immediately
+    // with a corrective instruction — temperature 0.2 is low but not zero, so
+    // a second pass samples differently and usually complies.
+    if (error.code === "AI_INVALID_RESPONSE") {
+      return requestReview({
+        systemPrompt,
+        userPrompt: `${userPrompt}\n\nYour previous response was rejected for not matching the required schema. Return the complete report again. Pay particular attention to which fields each section accepts.`,
+      });
+    }
+
+    throw error;
   }
 }
 
