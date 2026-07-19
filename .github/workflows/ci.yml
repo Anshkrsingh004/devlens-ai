@@ -21,6 +21,11 @@ env:
   # let a CI run mutate production data.
   DATABASE_URL: postgresql://user:pass@localhost:6543/devlens?pgbouncer=true
   DIRECT_URL: postgresql://user:pass@localhost:5432/devlens
+  # Fake credentials. CI never authenticates against a real provider.
+  BETTER_AUTH_SECRET: ci-secret-at-least-32-characters-long
+  BETTER_AUTH_URL: http://localhost:3000
+  GOOGLE_CLIENT_ID: ci-client-id
+  GOOGLE_CLIENT_SECRET: ci-client-secret
 
 jobs:
   verify:

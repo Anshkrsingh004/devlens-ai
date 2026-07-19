@@ -20,6 +20,7 @@ generator client {
 // That split is deliberate and preserves the Supabase requirement:
 //   - CLI / migrations -> DIRECT_URL  (port 5432, session mode)
 //   - App at runtime   -> DATABASE_URL (port 6543, pooled)
+
 datasource db {
   provider = "postgresql"
 }
@@ -70,9 +71,11 @@ enum ReviewDepth {
 /// One row per review request. Created BEFORE the AI call so that a dropped
 /// connection leaves a recoverable PENDING/FAILED row rather than losing the
 /// user's work silently.
+
 model Review {
   id     String @id @default(cuid())
   userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   title      String       @db.VarChar(120)
   language   Language
@@ -119,9 +122,11 @@ model Review {
 /// Per-user, per-day quota counter. This is the Redis replacement: an atomic
 /// upsert on a unique (userId, date) key is a correct, durable, free counter,
 /// and it doubles as the data source for the usage meter.
+
 model DailyUsage {
   id     String @id @default(cuid())
   userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// Date only, no time. Matches Groq's daily reset so the quota is trivially
   /// explainable to the user.
@@ -141,9 +146,11 @@ model DailyUsage {
 
 /// User settings, 1:1 with the user. Kept separate from Better Auth's `user`
 /// table so our schema is not coupled to their code generation.
+
 model UserPreference {
   id     String @id @default(cuid())
   userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   theme           Theme       @default(SYSTEM)
   defaultLanguage Language    @default(TYPESCRIPT)
@@ -156,4 +163,74 @@ model UserPreference {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  // Application-side relations. Every one cascades on delete, so removing an
+  // account removes all of its data — no orphans, and a clean answer to
+  // "delete my account" requests.
+  reviews    Review[]
+  dailyUsage DailyUsage[]
+  preference UserPreference?
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }

@@ -7,7 +7,7 @@ import {
   Timer,
 } from "lucide-react";
 
-import { AppShell } from "@/components/shared/AppShell";
+import { AppChrome } from "@/app/_components/AppChrome";
 import { Container } from "@/components/shared/Container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,7 +87,7 @@ const languages = [
 
 export default function LandingPage() {
   return (
-    <AppShell>
+    <AppChrome>
       <section className="border-b">
         <Container className="py-20 sm:py-28">
           <div className="mx-auto max-w-3xl text-center">
@@ -178,6 +178,6 @@ export default function LandingPage() {
           </ol>
         </Container>
       </section>
-    </AppShell>
+    </AppChrome>
   );
 }
