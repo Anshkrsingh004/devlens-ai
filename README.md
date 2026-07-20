@@ -27,10 +27,10 @@ The model produces plausible, idiomatic-looking code that can contain subtle
 bugs. Two consecutive reviews of the same C++ file produced two different
 defects in the refactor:
 
-| Attempt | Defect |
-|---|---|
-| 1 | Called `std::min`/`std::copy_n` without `#include <algorithm>`; and `data_.size() - 1` underflowed on an empty buffer, reintroducing the overflow it fixed |
-| 2 | Bounds check compared against `std::string::capacity()` — which grows on assignment — so the truncation branch was **dead code** and the size limit silently stopped being enforced |
+| Attempt | Defect                                                                                                                                                                              |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1       | Called `std::min`/`std::copy_n` without `#include <algorithm>`; and `data_.size() - 1` underflowed on an empty buffer, reintroducing the overflow it fixed                          |
+| 2       | Bounds check compared against `std::string::capacity()` — which grows on assignment — so the truncation branch was **dead code** and the size limit silently stopped being enforced |
 
 The second was confirmed by compiling and running it:
 
@@ -41,7 +41,7 @@ Truncated to 10? NO -- limit not enforced
 ```
 
 Prompt tuning reduced this but did not eliminate it — tightening the
-instructions after attempt 1 produced a *different* subtle bug rather than
+instructions after attempt 1 produced a _different_ subtle bug rather than
 none. This is a property of the technology, not a gap in the prompt.
 
 **Treat a refactor as a code review comment: a suggestion from a colleague
@@ -56,14 +56,14 @@ drift.
 
 ### Other constraints
 
-| Limitation | Reason |
-|---|---|
-| Single file per review | No cross-file context in the MVP |
-| ~2 reviews/minute, ~45/day | Groq free tier: 8,000 TPM, 200,000 TPD |
-| Input capped at 8,000 characters | Fits the per-request token budget |
-| No streaming | Incompatible with strict structured outputs |
-| Complexity may be `"N/A"` | Honest for non-algorithmic code |
-| No PR diff review yet | More tokens, less signal at this budget |
+| Limitation                       | Reason                                      |
+| -------------------------------- | ------------------------------------------- |
+| Single file per review           | No cross-file context in the MVP            |
+| ~2 reviews/minute, ~45/day       | Groq free tier: 8,000 TPM, 200,000 TPD      |
+| Input capped at 8,000 characters | Fits the per-request token budget           |
+| No streaming                     | Incompatible with strict structured outputs |
+| Complexity may be `"N/A"`        | Honest for non-algorithmic code             |
+| No PR diff review yet            | More tokens, less signal at this budget     |
 
 ---
 
