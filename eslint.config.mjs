@@ -55,11 +55,28 @@ const layerBoundaries = [
     forbidden: [{ group: ["@/server/*", "@/features/*", "@/app/*"] }],
   },
   {
-    name: "features must not reach into server, app, or a sibling feature",
+    name: "features must not reach into server, app, or a sibling feature's code",
+    files: ["src/features/**/*.{ts,tsx}"],
     // Same-feature imports use relative paths, so an `@/features/*` import
     // from inside a feature is always a cross-feature import.
-    files: ["src/features/**/*.{ts,tsx}"],
-    forbidden: [{ group: ["@/server/*", "@/app/*", "@/features/*"] }],
+    //
+    // `@/features/*/schemas/*` is deliberately absent, for the same reason
+    // `server/` may import it: those files are pure Zod with no feature
+    // dependencies, and the review-result schema is the application's shared
+    // contract — produced by the AI layer, rendered by review, serialised by
+    // export. Duplicating it per consumer is exactly the drift the boundary
+    // exists to prevent.
+    forbidden: [
+      {
+        group: [
+          "@/server/*",
+          "@/app/*",
+          "@/features/*/components/*",
+          "@/features/*/hooks/*",
+          "@/features/*/lib/*",
+        ],
+      },
+    ],
   },
   {
     name: "server must not import UI, but may import shared feature schemas",
