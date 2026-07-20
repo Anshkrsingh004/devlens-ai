@@ -1,7 +1,19 @@
 "use client";
 
-import { AlertCircle, Loader2, Star, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  Check,
+  Loader2,
+  Pencil,
+  RotateCcw,
+  Star,
+  Trash2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+
+import { Input } from "@/components/ui/input";
 
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { ScoreBadge } from "@/components/shared/ScoreBadge";
@@ -32,16 +44,33 @@ interface ReviewCardProps {
   review: ReviewListItem;
   onToggleFavorite: (id: string, isFavorite: boolean) => void;
   onDelete: (id: string) => void;
+  onRetry: (id: string) => void;
+  onRename: (id: string, title: string) => void;
+  isRetrying?: boolean;
 }
 
 export function ReviewCard({
   review,
   onToggleFavorite,
   onDelete,
+  onRetry,
+  onRename,
+  isRetrying,
 }: ReviewCardProps) {
   const language = getLanguageConfig(review.language);
   const isFailed = review.status === "FAILED";
   const isPending = review.status === "PENDING";
+
+  // Titles are auto-derived from the first line of code, so renaming matters
+  // once a list grows past a handful of "import sqlite3" entries.
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(review.title);
+
+  function commitRename() {
+    const next = draftTitle.trim();
+    if (next && next !== review.title) onRename(review.id, next);
+    setIsEditing(false);
+  }
 
   return (
     <Card className="hover:bg-muted/40 group relative gap-0 p-4 transition-colors">
@@ -52,12 +81,50 @@ export function ReviewCard({
             real <a> so it is keyboard-focusable and opens in a new tab with
             ctrl-click. The action buttons sit above it via z-index.
           */}
-          <Link
-            href={`/review/${review.id}`}
-            className="focus-visible:ring-ring rounded-sm before:absolute before:inset-0 focus-visible:ring-2 focus-visible:outline-none"
-          >
-            <h3 className="truncate font-medium">{review.title}</h3>
-          </Link>
+          {isEditing ? (
+            <div className="relative z-10 flex items-center gap-1">
+              <Input
+                autoFocus
+                value={draftTitle}
+                onChange={(event) => setDraftTitle(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") commitRename();
+                  if (event.key === "Escape") {
+                    setDraftTitle(review.title);
+                    setIsEditing(false);
+                  }
+                }}
+                aria-label="Review title"
+                className="h-8"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={commitRename}
+                aria-label="Save title"
+              >
+                <Check className="size-4" aria-hidden="true" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setDraftTitle(review.title);
+                  setIsEditing(false);
+                }}
+                aria-label="Cancel rename"
+              >
+                <X className="size-4" aria-hidden="true" />
+              </Button>
+            </div>
+          ) : (
+            <Link
+              href={`/review/${review.id}`}
+              className="focus-visible:ring-ring rounded-sm before:absolute before:inset-0 focus-visible:ring-2 focus-visible:outline-none"
+            >
+              <h3 className="truncate font-medium">{review.title}</h3>
+            </Link>
+          )}
 
           <div className="text-muted-foreground mt-1.5 flex flex-wrap items-center gap-2 text-xs">
             <Badge variant="secondary" className="text-xs">
@@ -84,6 +151,36 @@ export function ReviewCard({
         <div className="relative z-10 flex shrink-0 items-center gap-1">
           {review.overallScore !== null ? (
             <ScoreBadge score={review.overallScore} />
+          ) : null}
+
+          {/* Only failed reviews can be retried, and a retry spends quota —
+              so it is an explicit action, never automatic. */}
+          {isFailed ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onRetry(review.id)}
+              disabled={isRetrying}
+              aria-label={`Retry review: ${review.title}`}
+              title="Retry (uses one review from today's quota)"
+            >
+              {isRetrying ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <RotateCcw className="size-4" aria-hidden="true" />
+              )}
+            </Button>
+          ) : null}
+
+          {!isEditing ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsEditing(true)}
+              aria-label={`Rename review: ${review.title}`}
+            >
+              <Pencil className="size-4" aria-hidden="true" />
+            </Button>
           ) : null}
 
           <Button

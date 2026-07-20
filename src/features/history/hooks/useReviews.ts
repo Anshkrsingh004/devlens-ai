@@ -172,3 +172,100 @@ export function useDeleteReview() {
     },
   });
 }
+
+/**
+ * Re-run a review that previously failed.
+ *
+ * The endpoint existed from M3 but nothing called it, so a failed review sat
+ * in the dashboard with no way to recover it.
+ *
+ * No optimistic update: a retry takes several seconds and consumes quota, so
+ * showing success before the server confirms would be a lie the user acts on.
+ * The row is invalidated on completion instead.
+ */
+export function useRetryReview() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiRequest<{ id: string; status: string; overallScore: number | null }>(
+        `/api/reviews/${id}/retry`,
+        { method: "POST" },
+      ),
+
+    onSuccess: (data) => {
+      toast.success("Review completed", {
+        description:
+          data.overallScore !== null
+            ? `Scored ${data.overallScore}/100.`
+            : undefined,
+      });
+    },
+
+    onError: (error) => {
+      toast.error("Retry failed", {
+        description:
+          error instanceof Error ? error.message : "Please try again later.",
+      });
+    },
+
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reviews.all });
+      // A retry spends quota, so the usage meter is now stale too.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.usage });
+    },
+  });
+}
+
+/**
+ * Rename a review, optimistically.
+ *
+ * Without the optimistic write the card reverts to the old title while the
+ * refetch is in flight — the user sees their edit apparently discarded, then
+ * reappear a second later. Rollback restores the previous title on failure.
+ */
+export function useRenameReview() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, title }: { id: string; title: string }) =>
+      apiRequest(`/api/reviews/${id}`, { method: "PATCH", body: { title } }),
+
+    onMutate: async ({ id, title }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.reviews.all });
+
+      const previous = queryClient.getQueriesData({
+        queryKey: queryKeys.reviews.all,
+      });
+
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.reviews.all },
+        (old: { pages: ReviewPage[] } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              items: page.items.map((item) =>
+                item.id === id ? { ...item, title } : item,
+              ),
+            })),
+          };
+        },
+      );
+
+      return { previous };
+    },
+
+    onError: (_error, _variables, context) => {
+      for (const [key, data] of context?.previous ?? []) {
+        queryClient.setQueryData(key, data);
+      }
+      toast.error("Could not rename review");
+    },
+
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reviews.all });
+    },
+  });
+}
