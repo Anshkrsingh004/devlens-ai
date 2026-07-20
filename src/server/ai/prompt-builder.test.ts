@@ -83,3 +83,46 @@ describe("buildSystemPrompt", () => {
     expect(thorough).toContain("exhaustive");
   });
 });
+
+describe("buildSystemPrompt — security coverage", () => {
+  /**
+   * A review of an Express transfer endpoint missed that any authenticated
+   * user could transfer from any account, because the prompt never asked
+   * about access control. Broken Access Control is OWASP #1 and is easy to
+   * miss precisely because the surrounding code looks orderly.
+   */
+  it("asks explicitly about access control", () => {
+    const prompt = buildSystemPrompt();
+
+    expect(prompt).toContain("ACCESS CONTROL");
+    expect(prompt).toContain("broken access control");
+  });
+
+  it("requires missing transactions to be reported as a finding", () => {
+    // Previously atomicity was mentioned only in the summary, and findings
+    // are what a reviewer scans.
+    expect(buildSystemPrompt()).toContain("ATOMICITY");
+  });
+
+  it("caps the score when CRITICAL findings exist", () => {
+    // The same endpoint scored 45/100 despite an unauthenticated money
+    // transfer — "notable defects" rather than "dangerous".
+    const prompt = buildSystemPrompt();
+
+    expect(prompt).toContain("caps the score at 39");
+    expect(prompt).toContain("0-19 band");
+  });
+
+  it("requires the refactor to fix every critical and high finding", () => {
+    expect(buildSystemPrompt()).toContain(
+      "FIX EVERY CRITICAL AND HIGH FINDING",
+    );
+  });
+
+  it("warns against the refactor defects seen in practice", () => {
+    const prompt = buildSystemPrompt();
+
+    expect(prompt).toContain("dead code");
+    expect(prompt).toContain('"if (!balance)"');
+  });
+});
