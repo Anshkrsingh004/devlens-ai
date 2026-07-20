@@ -7,6 +7,7 @@ import { Container } from "@/components/shared/Container";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
+import { ExportMenu } from "@/features/export/components/ExportMenu";
 import { ReportView } from "@/features/review/components/ReportView";
 import { reviewResultSchema } from "@/features/review/schemas/review-result.schema";
 import { requireSession } from "@/server/auth/guards";
@@ -54,6 +55,17 @@ export default async function ReviewDetailPage({
             dateStyle: "medium",
             timeStyle: "short",
           })}
+          actions={
+            parsed.success ? (
+              <ExportMenu
+                reviewId={review.id}
+                result={parsed.data}
+                title={review.title}
+                language={review.language}
+                createdAt={review.createdAt.toISOString()}
+              />
+            ) : null
+          }
         />
       </div>
 
