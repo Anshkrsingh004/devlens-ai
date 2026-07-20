@@ -1,0 +1,37 @@
+name: Keepalive
+
+# Supabase pauses free-tier projects after 7 days without database activity.
+# For a portfolio project that means the live link silently dies — the worst
+# possible failure, because it happens exactly when nobody is watching and is
+# discovered by whoever you sent the link to.
+#
+# /api/health issues a real `SELECT 1`, so hitting it counts as activity. A
+# static response would keep the endpoint green while the database paused
+# underneath it.
+on:
+  schedule:
+    # 06:00 UTC daily. GitHub delays scheduled runs under load, which is fine:
+    # the window is seven days, so even a run that slips by hours is early.
+    - cron: "0 6 * * *"
+  # Allows a manual run from the Actions tab to confirm it works without
+  # waiting for the schedule.
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping health endpoint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Keep Supabase awake
+        run: |
+          echo "Pinging $HEALTH_URL"
+          # --fail makes curl exit non-zero on 4xx/5xx, so a broken deployment
+          # surfaces as a failed workflow rather than a silent success.
+          response=$(curl --fail --silent --show-error --max-time 30 "$HEALTH_URL")
+          echo "$response"
+
+          # Confirm the database actually responded, not just the route.
+          echo "$response" | grep -q '"db":"connected"'
+        env:
+          HEALTH_URL: https://devlens-ai-tau.vercel.app/api/health
