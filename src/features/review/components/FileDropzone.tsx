@@ -102,6 +102,7 @@ export function FileDropzone({ onFileLoaded, disabled }: FileDropzoneProps) {
       <input
         ref={inputRef}
         type="file"
+        aria-label="Upload a source file"
         accept={ACCEPTED_EXTENSIONS}
         className="sr-only"
         // Reset so selecting the same file twice still fires onChange.
