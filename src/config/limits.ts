@@ -56,3 +56,13 @@ export const DAILY_REVIEW_QUOTA = 10;
 export function estimateTokens(text: string): number {
   return Math.ceil(text.length / CHARS_PER_TOKEN);
 }
+
+/**
+ * Score bounds.
+ *
+ * Declared in config rather than the Zod schema so both the schema and the
+ * shared ScoreBadge component can read them — `components/` may import config
+ * but never features. The system prompt's rubric must state the same range.
+ */
+export const SCORE_MIN = 0;
+export const SCORE_MAX = 100;
