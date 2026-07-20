@@ -1,0 +1,160 @@
+[
+  {
+    "slug": "sql-injection-python",
+    "title": "SQL query builder with unsafe concatenation",
+    "language": "PYTHON",
+    "blurb": "A data-access helper that concatenates user input into SQL, crashes on empty results, and deduplicates in quadratic time.",
+    "sourceCode": "import sqlite3\n\ndef get_user_orders(db_path, user_id, status):\n    conn = sqlite3.connect(db_path)\n    cur = conn.cursor()\n    query = \"SELECT * FROM orders WHERE user_id = \" + str(user_id) + \" AND status = '\" + status + \"'\"\n    cur.execute(query)\n    rows = cur.fetchall()\n\n    result = []\n    for r in rows:\n        found = False\n        for x in result:\n            if x[0] == r[0]:\n                found = True\n        if not found:\n            result.append(r)\n\n    total = 0\n    for i in range(0, len(result) + 1):\n        total = total + result[i][3]\n\n    return result, total / len(result)\n",
+    "result": {
+      "bugs": [
+        {
+          "line": 20,
+          "title": "Index out of range in total calculation loop",
+          "severity": "CRITICAL",
+          "suggestion": "Iterate over the list directly or use range(len(result)) without the +1.",
+          "description": "The loop uses range(0, len(result) + 1) and then accesses result[i], which raises IndexError on the last iteration."
+        },
+        {
+          "line": 23,
+          "title": "Division by zero when result is empty",
+          "severity": "CRITICAL",
+          "suggestion": "Return 0 or None for the average when result is empty, e.g., use a conditional expression.",
+          "description": "The function returns total / len(result) without checking if result is empty, causing ZeroDivisionError."
+        }
+      ],
+      "summary": "The function suffers from critical security and stability issues: it builds SQL via string concatenation, enabling injection, and iterates past the end of the result list causing IndexError. It also divides by zero when no rows match. Additional concerns include O(n²) duplicate removal, missing resource cleanup, and lack of separation of concerns. The refactor introduces parameterised queries, proper context‑manager handling, safe deduplication, correct total/average calculation, and defensive checks, bringing the code to production‑ready quality.",
+      "codeSmells": [
+        {
+          "line": 4,
+          "title": "Database connection not closed",
+          "severity": "LOW",
+          "suggestion": "Wrap the connection in a with statement (with sqlite3.connect(db_path) as conn:).",
+          "description": "The connection and cursor are created without a context manager, risking resource leaks."
+        },
+        {
+          "line": 6,
+          "title": "SELECT * usage",
+          "severity": "LOW",
+          "suggestion": "Select only the columns needed for the calculation (e.g., id, amount).",
+          "description": "Fetching all columns may retrieve unnecessary data and couples code to table schema."
+        }
+      ],
+      "overallScore": 22,
+      "bestPractices": [
+        {
+          "title": "Use parameterised queries and context managers",
+          "impact": "HIGH",
+          "description": "Parameterised queries prevent injection; context managers ensure connections are closed automatically, improving safety and readability."
+        }
+      ],
+      "commitMessage": "fix(security): prevent SQL injection and index errors in get_user_orders",
+      "prDescription": "## Summary\nThe original implementation was vulnerable to SQL injection, could crash due to out‑of‑range indexing and division by zero, and performed inefficient duplicate removal.\n\n## Changes\n- Use a context manager for the SQLite connection.\n- Replace string‑concatenated SQL with a parameterised query.\n- Deduplicate orders using a dictionary keyed by order ID (O(n) time).\n- Guard against empty results when calculating the average.\n- Add docstring and type hints for clarity.\n",
+      "refactoredCode": "import sqlite3\n\ndef get_user_orders(db_path: str, user_id: int, status: str):\n    \"\"\"Return a list of unique orders for the given user and status, and the average amount.\n\n    The function uses a parameterised query to avoid SQL injection, deduplicates\n    orders by their primary key, and safely computes the average even when no\n    orders are found.\n    \"\"\"\n    # Fetch rows safely using a context manager and parameterised query\n    with sqlite3.connect(db_path) as conn:\n        cur = conn.cursor()\n        query = \"SELECT * FROM orders WHERE user_id = ? AND status = ?\"\n        cur.execute(query, (user_id, status))\n        rows = cur.fetchall()\n\n    # Deduplicate orders (assumes the first column is the order ID)\n    unique_orders = {}\n    for row in rows:\n        order_id = row[0]\n        if order_id not in unique_orders:\n            unique_orders[order_id] = row\n    result = list(unique_orders.values())\n\n    # Compute total and average safely\n    total = sum(row[3] for row in result) if result else 0\n    average = total / len(result) if result else 0\n\n    return result, average\n",
+      "securityIssues": [
+        {
+          "line": 6,
+          "title": "SQL injection vulnerability",
+          "severity": "CRITICAL",
+          "suggestion": "Use parameterised queries with placeholders (e.g., \"WHERE user_id = ? AND status = ?\") and pass the values as a tuple to execute().",
+          "description": "User‑controlled values (user_id and status) are concatenated into the SQL string, allowing an attacker to inject arbitrary SQL."
+        }
+      ],
+      "timeComplexity": {
+        "value": "O(n^2)",
+        "explanation": "Duplicate removal uses nested loops, dominating the overall runtime."
+      },
+      "maintainability": [
+        {
+          "title": "Function does too many things",
+          "impact": "MEDIUM",
+          "description": "Fetching, deduplication, total and average calculation are all in one function, making it harder to test and modify."
+        }
+      ],
+      "spaceComplexity": {
+        "value": "O(n)",
+        "explanation": "The result list stores up to all fetched rows."
+      },
+      "performanceIssues": [
+        {
+          "line": 11,
+          "title": "Inefficient duplicate removal",
+          "severity": "LOW",
+          "suggestion": "Deduplicate using a dict or set keyed by the order id, reducing complexity to O(n).",
+          "description": "Nested loops create O(n²) complexity for deduplication of orders."
+        }
+      ]
+    }
+  },
+  {
+    "slug": "raw-buffer-cpp",
+    "title": "Raw buffer class with manual memory management",
+    "language": "CPP",
+    "blurb": "A C++ class using new[] without a destructor, strcpy without bounds checking, and an out-of-range loop.",
+    "sourceCode": "#include <iostream>\n#include <cstring>\n#include <vector>\n\nclass Buffer {\npublic:\n    char* data;\n    int size;\n\n    Buffer(int n) {\n        size = n;\n        data = new char[n];\n    }\n\n    void copyFrom(const char* src) {\n        strcpy(data, src);\n    }\n\n    int findDuplicate(std::vector<int> nums) {\n        for (int i = 0; i <= nums.size(); i++) {\n            for (int j = 0; j < nums.size(); j++) {\n                if (i != j && nums[i] == nums[j])\n                    return nums[i];\n            }\n        }\n        return -1;\n    }\n};\n\nint main() {\n    Buffer b(10);\n    char input[256];\n    std::cin >> input;\n    b.copyFrom(input);\n    std::cout << b.data << std::endl;\n    return 0;\n}\n",
+    "result": {
+      "bugs": [
+        {
+          "line": 20,
+          "title": "Out‑of‑bounds access in findDuplicate",
+          "severity": "CRITICAL",
+          "suggestion": "Change the condition to i < nums.size() and iterate safely; also pass the vector by const reference to avoid copying.",
+          "description": "The outer loop uses i <= nums.size(), so when i equals nums.size() the code reads nums[i] which is out of range, causing undefined behaviour or a crash."
+        }
+      ],
+      "summary": "The original code has critical security and correctness issues: an unchecked strcpy leads to buffer overflow, and the duplicate‑search loop accesses out‑of‑bounds indices. Additional problems include unnecessary vector copies, public raw pointers, missing destructor/rule‑of‑three, and unsafe input handling. The refactor replaces raw memory with std::vector<char>, uses safe copying, fixes loop bounds, passes containers by const reference, and improves overall safety and maintainability.",
+      "codeSmells": [
+        {
+          "line": 7,
+          "title": "Public raw pointer and size members",
+          "severity": "LOW",
+          "suggestion": "Make the data member private and use a managed container such as std::vector<char> or std::string.",
+          "description": "Exposing raw pointer data and size breaks encapsulation and makes manual memory management error‑prone."
+        }
+      ],
+      "overallScore": 22,
+      "bestPractices": [
+        {
+          "title": "Unsafe console input handling",
+          "impact": "MEDIUM",
+          "description": "Reading into a fixed char array with operator>> can overflow and stops at whitespace; using std::string and getline is safer."
+        }
+      ],
+      "commitMessage": "fix(buffer): prevent overflow and out-of-bounds in duplicate search",
+      "prDescription": "## Summary\nThe original implementation suffered from a critical buffer overflow and an out‑of‑bounds read, plus several maintainability and performance drawbacks.\n\n## Changes\n- Replaced raw pointer with `std::vector<char>` and added proper encapsulation.\n- Implemented safe bounded copy in `Buffer::copyFrom`.\n- Fixed loop bounds and changed `findDuplicate` to take a `const&`.\n- Updated input handling to use `std::string` and `std::getline`.\n- Added rule‑of‑zero compliance (no manual memory management).",
+      "refactoredCode": "#include <iostream>\n#include <vector>\n#include <string>\n#include <algorithm>\n\nclass Buffer {\npublic:\n    explicit Buffer(std::size_t n) : data_(n) {}\n\n    void copyFrom(const std::string& src) {\n        // Reserve space for null terminator\n        std::size_t copyLen = std::min(src.size(), data_.size() - 1);\n        std::copy_n(src.data(), copyLen, data_.data());\n        data_[copyLen] = '\\0';\n    }\n\n    const char* data() const { return data_.data(); }\n\nprivate:\n    std::vector<char> data_; // manages memory automatically\n};\n\nint findDuplicate(const std::vector<int>& nums) {\n    for (std::size_t i = 0; i < nums.size(); ++i) {\n        for (std::size_t j = i + 1; j < nums.size(); ++j) {\n            if (nums[i] == nums[j])\n                return nums[i];\n        }\n    }\n    return -1;\n}\n\nint main() {\n    Buffer b(10);\n    std::string input;\n    std::getline(std::cin, input);\n    b.copyFrom(input);\n    std::cout << b.data() << std::endl;\n    return 0;\n}\n",
+      "securityIssues": [
+        {
+          "line": 16,
+          "title": "Buffer overflow in copyFrom",
+          "severity": "CRITICAL",
+          "suggestion": "Replace strcpy with a bounded copy (e.g., std::copy_n or strncpy) that respects the allocated size, or store data in a std::vector/std::string.",
+          "description": "copyFrom uses strcpy on a fixed‑size buffer without checking the length of src, allowing an attacker‑controlled input to overwrite memory."
+        }
+      ],
+      "timeComplexity": {
+        "value": "O(n^2)",
+        "explanation": "findDuplicate uses a nested loop over the input vector, resulting in quadratic time in the number of elements."
+      },
+      "maintainability": [
+        {
+          "title": "Missing destructor and rule‑of‑three/five",
+          "impact": "HIGH",
+          "description": "Buffer allocates memory with new but never frees it, and lacks copy/move semantics, leading to leaks and double‑free risks if copying occurs."
+        }
+      ],
+      "spaceComplexity": {
+        "value": "O(1)",
+        "explanation": "Aside from the input vector, the algorithm uses only a few scalar variables."
+      },
+      "performanceIssues": [
+        {
+          "line": 19,
+          "title": "Unnecessary copy of vector in findDuplicate",
+          "severity": "MEDIUM",
+          "suggestion": "Accept the vector as a const reference (const std::vector<int>&) to avoid the copy.",
+          "description": "findDuplicate takes its argument by value, copying the entire vector each call, which is wasteful for large inputs."
+        }
+      ]
+    }
+  }
+]

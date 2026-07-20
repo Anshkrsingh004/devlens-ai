@@ -7,6 +7,8 @@ import {
   Timer,
 } from "lucide-react";
 
+import Link from "next/link";
+
 import { AppChrome } from "@/app/_components/AppChrome";
 import { Container } from "@/components/shared/Container";
 import { Button } from "@/components/ui/button";
@@ -108,7 +110,7 @@ export default function LandingPage() {
                 <a href="#capabilities">See what you get</a>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <a href="#how-it-works">How it works</a>
+                <Link href="/demo">See a real review</Link>
               </Button>
             </div>
 
