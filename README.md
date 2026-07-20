@@ -8,8 +8,8 @@ commit message. A scored report with fixed sections, not a chat transcript.
 
 **Live:** <https://devlens-ai-tau.vercel.app>
 
-> **Status: M0–M4 complete.** Auth, database, AI engine and the review
-> workspace are live. History and export follow in M5–M6.
+> **Status: M0–M5 complete.** Auth, database, AI engine, review workspace
+> and history are live. Export and final polish follow in M6–M7.
 > See [`IMPLEMENTATION_ROADMAP.md`](./IMPLEMENTATION_ROADMAP.md).
 
 ---
@@ -122,7 +122,7 @@ this is intentional, and preferable to an `undefined` surfacing later.
 | `npm run format`    | Format with Prettier                   |
 | `npm run test`      | Unit and component tests (Vitest)      |
 | `npm run test:e2e`  | End-to-end tests (Playwright)          |
-| `npm run verify`    | Typecheck → lint → test → build        |
+| `npm run verify`    | The full CI gate, run locally          |
 
 ## Architecture
 
@@ -156,10 +156,9 @@ decay under deadline pressure; a lint error does not.
 
 ## Tech Stack
 
-Next.js 15 · TypeScript · TailwindCSS · shadcn/ui · Zod · Vitest · Playwright
-
-Later milestones add Prisma, PostgreSQL (Supabase), Better Auth, Monaco Editor,
-TanStack Query, and the Groq API.
+Next.js 15 · TypeScript · TailwindCSS · shadcn/ui · Monaco Editor · Zod ·
+TanStack Query · Prisma 7 · PostgreSQL (Supabase) · Better Auth · Groq ·
+Vitest · Playwright · Vercel
 
 Every dependency and service sits on a free tier. Total infrastructure
 cost: **₹0**.
