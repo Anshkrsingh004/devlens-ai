@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { LANGUAGES, type Language } from "@/config/languages";
 import { MAX_SOURCE_CHARS, MIN_SOURCE_CHARS } from "@/config/limits";
 
 /**
@@ -10,14 +11,6 @@ import { MAX_SOURCE_CHARS, MIN_SOURCE_CHARS } from "@/config/limits";
  * server. Sharing one schema is what makes those two checks agree — a form
  * that accepts what the API rejects is a classic and confusing bug.
  */
-
-export const LANGUAGES = [
-  "CPP",
-  "PYTHON",
-  "JAVA",
-  "JAVASCRIPT",
-  "TYPESCRIPT",
-] as const;
 
 export const SOURCE_TYPES = ["PASTE", "UPLOAD"] as const;
 
@@ -47,7 +40,7 @@ export const reviewInputSchema = z.object({
 
 export type ReviewInput = z.input<typeof reviewInputSchema>;
 export type ParsedReviewInput = z.output<typeof reviewInputSchema>;
-export type Language = (typeof LANGUAGES)[number];
+export type { Language };
 
 /** Human-readable labels, used by the language selector and the prompt. */
 export const LANGUAGE_LABELS: Record<Language, string> = {
