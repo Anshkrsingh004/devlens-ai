@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { SCORE_MAX, SCORE_MIN } from "@/config/limits";
+
 /**
  * THE contract of the application.
  *
@@ -18,12 +20,10 @@ import { z } from "zod";
  * ---------------------------------------------------------------------------
  */
 
+export { SCORE_MAX, SCORE_MIN };
+
 export const SEVERITIES = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 export const IMPACTS = ["LOW", "MEDIUM", "HIGH"] as const;
-
-/** Score bounds. The rubric in the system prompt must state the same range. */
-export const SCORE_MIN = 0;
-export const SCORE_MAX = 100;
 
 /** Caps that keep a single response inside the token budget. */
 const MAX_FINDINGS_PER_CATEGORY = 10;

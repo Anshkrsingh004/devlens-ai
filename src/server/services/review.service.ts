@@ -224,3 +224,39 @@ async function runReview(
 export function getReview(userId: string, reviewId: string) {
   return reviewRepository.findById(reviewId, userId);
 }
+
+/** List a user's reviews. Pagination and filtering happen in the query. */
+export function listReviews(
+  userId: string,
+  options: reviewRepository.ListReviewsOptions,
+) {
+  return reviewRepository.listByUser(userId, options);
+}
+
+/**
+ * Rename or favorite a review.
+ *
+ * Returns 404 rather than 403 for a review owned by someone else: ownership
+ * is enforced inside the query, so a missing row and an unowned row are
+ * indistinguishable and nothing leaks about which IDs exist.
+ */
+export async function updateReview(
+  userId: string,
+  reviewId: string,
+  data: { title?: string; isFavorite?: boolean },
+) {
+  const updated = await reviewRepository.updateOwned(reviewId, userId, data);
+
+  if (!updated) throw errors.notFound("That review");
+
+  return updated;
+}
+
+/** Delete a review. Hard delete — the source is the user's to remove. */
+export async function deleteReview(userId: string, reviewId: string) {
+  const count = await reviewRepository.remove(reviewId, userId);
+
+  if (count === 0) throw errors.notFound("That review");
+
+  return { id: reviewId, deleted: true };
+}
