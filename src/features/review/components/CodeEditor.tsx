@@ -67,6 +67,9 @@ export function CodeEditor({
           }
         }}
         options={{
+          // Monaco renders a hidden textarea that screen readers announce;
+          // without a name it is reported as an unlabelled form control.
+          ariaLabel: "Source code editor",
           readOnly: disabled,
           minimap: { enabled: false },
           fontSize: 13,

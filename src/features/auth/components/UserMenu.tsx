@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -84,6 +85,15 @@ export function UserMenu({ name, email, image }: UserMenuProps) {
             {email}
           </span>
         </DropdownMenuLabel>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem asChild>
+          <Link href="/settings">
+            <Settings aria-hidden="true" />
+            Settings
+          </Link>
+        </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
