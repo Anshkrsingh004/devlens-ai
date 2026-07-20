@@ -1,7 +1,7 @@
 # Checkpoint — 2026-07-20
 
-State of the project at the end of the M7 first half. Written so work can
-resume from a cold start without re-deriving anything.
+State of the project after M7. Written so work can resume from a cold start
+without re-deriving anything.
 
 **Live:** <https://devlens-ai-tau.vercel.app> · **Repo:** `Anshkrsingh004/devlens-ai`
 
@@ -9,55 +9,52 @@ resume from a cold start without re-deriving anything.
 
 ## Status
 
-| Milestone                  | State                              |
-| -------------------------- | ---------------------------------- |
-| M0 Foundation & deployment | ✅ live                            |
-| M1 Data layer              | ✅ verified in production          |
-| M2 Authentication          | ✅ Google + email working          |
-| M3 AI review engine        | ✅ real reviews in production      |
-| M4 Review workspace        | ✅ Monaco + 13 rendered sections   |
-| M5 Dashboard & history     | ✅ search, favorites, detail pages |
-| M6 Export                  | ✅ Markdown + client-side PDF      |
-| M7 Polish                  | 🟡 **half done** — see below       |
+All seven milestones complete, deployed and verified in production.
+CI green, 60 tests passing.
 
-Latest commit: `5873d95`. CI green. 60 tests passing.
+| Milestone                  | State                            |
+| -------------------------- | -------------------------------- |
+| M0 Foundation & deployment | done                             |
+| M1 Data layer              | done                             |
+| M2 Authentication          | done, Google + email             |
+| M3 AI review engine        | done, prompt at v4               |
+| M4 Review workspace        | done, Monaco + 13 sections       |
+| M5 Dashboard & history     | done, search/favorites/detail    |
+| M6 Export                  | done, Markdown + client-side PDF |
+| M7 Settings & polish       | done, 0 serious a11y violations  |
 
 ---
 
-## What remains (M7 second half)
+## What remains
 
-Neither item blocks the demo. Roughly 45 minutes total.
+Finishing gaps, not architectural work. Roughly 30 minutes.
 
-### 1. Settings page (~25 min)
+### 1. Retry is unreachable from the UI
 
-Route `/settings` does not exist yet. Everything behind it already works:
+`POST /api/reviews/[id]/retry` exists, is tested, and enforces ownership —
+but no component calls it. A review that fails sits in the dashboard marked
+"Failed" with no way to re-run it. This is the same class of mistake as
+`/review/new` having no link in M4: a working feature nobody can reach.
 
-- `preference.repository.ts` — `findOrCreate`, `update` (done, tested)
-- `UserPreference` table — `theme`, `defaultLanguage`, `reviewDepth`,
-  `includeRefactor` (migrated, defaults verified)
-- `buildSystemPrompt(depth)` and `buildUserPrompt({ includeRefactor })`
-  already consume those values
+Needs a `useRetryReview` mutation (mirror `useToggleFavorite` in
+`features/history/hooks/useReviews.ts`) and a button on `ReviewCard` when
+`status === "FAILED"`, plus one on the review detail page.
 
-Still needed:
+Note: a retry consumes quota, so the button should say so.
 
-- `GET`/`PATCH /api/preferences` route (`API.md` §5 has the contract)
-- `preference.service.ts`
-- `usePreferences` hook + `SettingsForm`
-- A link to `/settings` in `UserMenu` (`features/auth/components/UserMenu.tsx`)
+### 2. Renaming a review is not wired up
 
-**The important part:** preferences must visibly change behaviour, not merely
-persist. `reviewDepth` alters prompt verbosity and `includeRefactor` removes
-the refactor section — worth ~1,500 output tokens. A settings page whose
-toggles do nothing is immediately obvious to a technical reviewer.
+`PATCH /api/reviews/[id]` accepts `title`, validated and tested. Nothing
+uses it, so every review keeps its auto-derived title ("import sqlite3",
+"class Buffer {"), which reads poorly once there are twenty.
 
-### 2. Accessibility pass (~20 min)
+### 3. TASKS.md checkboxes are all unticked
 
-Not yet audited systematically. Components were built with labels, focus rings
-and `aria-live` as they went, but nothing has been measured.
+Cosmetic, but a reviewer opening it sees 0/141 on a finished project.
 
-- Run axe or Lighthouse against `/`, `/demo`, `/dashboard`, `/review/new`
-- Check keyboard paths, especially the Monaco editor and the dropdown menus
-- Target Lighthouse a11y ≥ 95
+### 4. Profile editing (optional)
+
+Settings shows the signed-in email but the display name cannot be changed.
 
 ---
 
