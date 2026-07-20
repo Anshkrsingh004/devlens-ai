@@ -24,8 +24,30 @@ Documented deliberately. Each is a measured trade-off, not an oversight.
 needs review before use.**
 
 The model produces plausible, idiomatic-looking code that can contain subtle
-bugs. Two consecutive reviews of the same C++ file produced two different
-defects in the refactor:
+bugs — including in refactors of code that was already correct.
+
+**The clearest case.** A correct `merge_intervals` function scored 82/100 with
+no bugs found, which was accurate. Its suggested refactor added a validation
+loop before the existing `sorted()` call:
+
+```python
+for idx, item in enumerate(intervals):   # consumes the iterable
+    ...
+ordered = sorted(intervals, ...)          # generator is now exhausted
+```
+
+The parameter is typed `Iterable[Interval]`, which permits a generator.
+Running it:
+
+```
+list input      : [Interval(1,6), Interval(8,10)]   correct
+generator input : []                                 silently wrong
+```
+
+No exception, no warning — a caller passing a generator gets empty results.
+Working code in, broken code out.
+
+Two consecutive reviews of a C++ file produced two further defects:
 
 | Attempt | Defect                                                                                                                                                                              |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -42,7 +64,12 @@ Truncated to 10? NO -- limit not enforced
 
 Prompt tuning reduced this but did not eliminate it — tightening the
 instructions after attempt 1 produced a _different_ subtle bug rather than
-none. This is a property of the technology, not a gap in the prompt.
+none. Three languages, three distinct defects. This is a property of the
+technology, not a gap in the prompt, so it is documented rather than hidden.
+
+The refactor is therefore presented as a suggestion and never applied
+automatically. Auto-applying it would have been the obvious feature and the
+wrong one.
 
 **Treat a refactor as a code review comment: a suggestion from a colleague
 who has not compiled it.**
