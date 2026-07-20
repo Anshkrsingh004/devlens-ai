@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 
 import {
   useDeleteReview,
+  useRenameReview,
+  useRetryReview,
   useReviews,
   useToggleFavorite,
 } from "../hooks/useReviews";
@@ -43,6 +45,8 @@ export function ReviewList() {
 
   const toggleFavorite = useToggleFavorite();
   const deleteReview = useDeleteReview();
+  const retryReview = useRetryReview();
+  const renameReview = useRenameReview();
 
   const items = query.data?.pages.flatMap((page) => page.items) ?? [];
   const hasFilters = Boolean(deferredSearch || language || favoritesOnly);
@@ -163,6 +167,11 @@ export function ReviewList() {
                   toggleFavorite.mutate({ id, isFavorite })
                 }
                 onDelete={(id) => deleteReview.mutate(id)}
+                onRetry={(id) => retryReview.mutate(id)}
+                onRename={(id, title) => renameReview.mutate({ id, title })}
+                isRetrying={
+                  retryReview.isPending && retryReview.variables === review.id
+                }
               />
             </li>
           ))}
