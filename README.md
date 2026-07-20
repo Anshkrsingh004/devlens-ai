@@ -8,9 +8,10 @@ commit message. A scored report with fixed sections, not a chat transcript.
 
 **Live:** <https://devlens-ai-tau.vercel.app>
 
-> **Status: M0–M5 complete.** Auth, database, AI engine, review workspace
-> and history are live. Export and final polish follow in M6–M7.
-> See [`IMPLEMENTATION_ROADMAP.md`](./IMPLEMENTATION_ROADMAP.md).
+> **Status: complete.** All seven milestones are built, deployed and verified
+> in production — 140 of 141 tasks, 60 tests, and no serious accessibility
+> violations. See [`IMPLEMENTATION_ROADMAP.md`](./IMPLEMENTATION_ROADMAP.md)
+> for the plan and [`TASKS.md`](./TASKS.md) for what shipped.
 
 ---
 
@@ -153,6 +154,7 @@ decay under deadline pressure; a lint error does not.
 | [`API.md`](./API.md)                                       | Route contracts and error taxonomy        |
 | [`TASKS.md`](./TASKS.md)                                   | Implementation checklist                  |
 | [`CLAUDE.md`](./CLAUDE.md)                                 | Coding standards and repository rules     |
+| [`CHECKPOINT.md`](./CHECKPOINT.md)                         | Current state, for resuming from scratch  |
 
 ## Tech Stack
 
