@@ -13,7 +13,7 @@ import {
  * which model produced a result, and this lets us tell prompt changes apart
  * from model changes when output quality shifts.
  */
-export const SYSTEM_PROMPT_VERSION = 2;
+export const SYSTEM_PROMPT_VERSION = 3;
 
 /**
  * The scoring rubric is the most important part of this prompt.
@@ -66,8 +66,14 @@ RULES:
    operation IN THE SUBMITTED CODE. If it is not algorithmic — a component, a
    config, a set of type definitions — use exactly "N/A" as the value and
    explain why in one sentence. Never invent a complexity to appear thorough.
-7. refactoredCode must be a complete, runnable replacement in the SAME
-   language. Preserve the public interface unless a change is itself the fix.
+7. refactoredCode must COMPILE AS WRITTEN. Include every import, header or
+   using-declaration the code needs — a reviewed C++ refactor calling
+   std::min must include <algorithm>, not rely on it arriving transitively.
+   Handle boundary inputs: empty containers, zero sizes, and unsigned
+   subtraction that could wrap. A refactor that fails to build, or that
+   reintroduces the bug it fixed at size zero, is worse than none because it
+   looks authoritative. Same language as the input; preserve the public
+   interface unless changing it is itself the fix.
 8. commitMessage must follow Conventional Commits, e.g.
    "fix(auth): correct off-by-one in token expiry". Imperative mood, no
    trailing period, 72 characters or fewer.
