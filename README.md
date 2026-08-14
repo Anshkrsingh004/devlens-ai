@@ -153,7 +153,7 @@ decay under deadline pressure; a lint error does not.
 | [`DATABASE.md`](./DATABASE.md)                             | Schema, indexes, scaling                  |
 | [`API.md`](./API.md)                                       | Route contracts and error taxonomy        |
 | [`TASKS.md`](./TASKS.md)                                   | Implementation checklist                  |
-| [`CLAUDE.md`](./CLAUDE.md)                                 | Coding standards and repository rules     |
+| [`ENGINEERING_GUIDELINES.md`](./ENGINEERING_GUIDELINES.md) | Coding standards and repository rules     |
 | [`CHECKPOINT.md`](./CHECKPOINT.md)                         | Current state, for resuming from scratch  |
 
 ## Tech Stack

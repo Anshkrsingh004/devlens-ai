@@ -1,4 +1,4 @@
-# CLAUDE.md — DevLens AI
+# ENGINEERING_GUIDELINES.md — DevLens AI
 
 > Permanent repository memory. Read this before writing any code in this repo.
 > If a rule here conflicts with a general habit or a tutorial, **this file wins**.

@@ -27,7 +27,7 @@ AICodeReviewer/
 ├── public/                     # Static assets
 ├── src/                        # All application source
 ├── tests/                      # E2E + integration tests
-├── CLAUDE.md                   # Permanent repo memory / coding standards
+├── ENGINEERING_GUIDELINES.md                   # Permanent repo memory / coding standards
 ├── IMPLEMENTATION_ROADMAP.md   # Milestone plan
 ├── PROJECT_STRUCTURE.md        # This file
 ├── DATABASE.md                 # Schema reference

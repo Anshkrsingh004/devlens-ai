@@ -4,7 +4,7 @@ import { z } from "zod";
  * Environment variable validation.
  *
  * This module is the ONLY place in the codebase permitted to read
- * `process.env` (CLAUDE.md R6). Every other module imports the parsed,
+ * `process.env` (ENGINEERING_GUIDELINES.md R6). Every other module imports the parsed,
  * typed values from here.
  *
  * Validation runs at module load, so a missing or malformed variable fails

@@ -73,7 +73,7 @@ export function withApiHandler<Context = unknown>(handler: Handler<Context>) {
       const appError = toAppError(error);
 
       // Log the real cause server-side. Never include source code, tokens or
-      // connection strings — see CLAUDE.md §10.
+      // connection strings — see ENGINEERING_GUIDELINES.md §10.
       if (appError.code === "INTERNAL") {
         console.error("[api] unhandled error", {
           message: error instanceof Error ? error.message : String(error),

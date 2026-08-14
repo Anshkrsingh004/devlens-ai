@@ -137,7 +137,7 @@ const eslintConfig = [
     },
   })),
 
-  // CLAUDE.md R6: `lib/env.ts` is the only module permitted to read
+  // ENGINEERING_GUIDELINES.md R6: `lib/env.ts` is the only module permitted to read
   // process.env. Everything else imports validated, typed values, so a
   // missing variable fails at boot with a readable message rather than
   // surfacing as `undefined` deep inside a request handler.
@@ -151,7 +151,7 @@ const eslintConfig = [
           selector:
             "MemberExpression[object.name='process'][property.name='env']",
           message:
-            "Read environment variables through @/lib/env instead of process.env directly (CLAUDE.md R6).",
+            "Read environment variables through @/lib/env instead of process.env directly (ENGINEERING_GUIDELINES.md R6).",
         },
       ],
     },

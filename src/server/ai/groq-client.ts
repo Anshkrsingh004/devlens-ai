@@ -12,7 +12,7 @@ import { errors } from "@/lib/errors";
  * A thin transport wrapper: it builds the request, handles provider-level
  * failures, and validates the response against the shared schema. It contains
  * no business logic — quota, persistence and retry policy live in the service
- * layer (CLAUDE.md R2).
+ * layer (ENGINEERING_GUIDELINES.md R2).
  */
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";

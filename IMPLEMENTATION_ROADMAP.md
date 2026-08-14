@@ -17,7 +17,7 @@ This roadmap is the single source of truth for _what gets built, in what order, 
 | `DATABASE.md`          | Tables, columns, relations, indexes, scaling             |
 | `API.md`               | Every route: request, response, auth, validation, errors |
 | `TASKS.md`             | The executable checklist (~130 tasks, each <2h)          |
-| `CLAUDE.md`            | Permanent repo memory — coding standards and rules       |
+| `ENGINEERING_GUIDELINES.md`            | Permanent repo memory — coding standards and rules       |
 
 **Golden rules governing this plan**
 

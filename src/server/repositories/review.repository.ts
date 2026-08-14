@@ -13,7 +13,7 @@ import { db } from "@/lib/db";
  *
  * This layer answers "how do I read or write this row?" and nothing else.
  * Business rules — quota, token budget, whether a retry is permitted — belong
- * in server/services (CLAUDE.md R2/R3). Keeping them apart is what makes the
+ * in server/services (ENGINEERING_GUIDELINES.md R2/R3). Keeping them apart is what makes the
  * services unit-testable without a database.
  *
  * Every function takes `userId` and applies it inside the query rather than
